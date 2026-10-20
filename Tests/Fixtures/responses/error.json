@@ -1,0 +1,5 @@
+{
+    "class": "Typesense\\Exceptions\\ObjectNotFound",
+    "code": 0,
+    "message": "Could not find a facet field named `always` in the schema."
+}

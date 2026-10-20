@@ -1,0 +1,51 @@
+{
+    "name": "omnisearch/typesense",
+    "type": "library",
+    "description": "Omnisearch Typesense: omnisearch's driver for Typesense, over glitchr/typesense-bundle - the indexes declared by omnisearch's attributes become the bundle's collections (sub-collections of a discriminator included), objects its documents, omnisearch's requests its queries (infix, matched tokens, facets...), its responses omnisearch's; in a Symfony application the bundle hosts them.",
+    "keywords": [
+        "search",
+        "typesense",
+        "omnisearch",
+        "doctrine"
+    ],
+    "homepage": "https://github.com/glitchr-studio/omnisearch-typesense",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Marco Meyer",
+            "email": "marco.meyer@glitchr.io"
+        }
+    ],
+    "require": {
+        "php": ">=8.2",
+        "glitchr/typesense-bundle": "^2.0@dev",
+        "omniscient/omnisearch": "^1.0@dev"
+    },
+    "require-dev": {
+        "doctrine/doctrine-bundle": "^2.13|^3.0",
+        "doctrine/orm": "^3.0",
+        "phpunit/phpunit": "^11.0",
+        "symfony/config": "^7.0|^8.0",
+        "symfony/console": "^7.0|^8.0",
+        "symfony/framework-bundle": "^7.0|^8.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Omnisearch\\Typesense\\": ""
+        },
+        "exclude-from-classmap": [
+            "/Tests/"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Omnisearch\\Typesense\\Tests\\": "Tests/"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "suggest": {
+        "symfony/framework-bundle": "In a Symfony application: glitchr/typesense-bundle hosts the indexes (Bridge\\Symfony\\TypesenseHost)"
+    }
+}
