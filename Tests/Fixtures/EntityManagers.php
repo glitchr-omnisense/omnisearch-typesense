@@ -10,9 +10,10 @@ use Doctrine\ORM\Tools\SchemaTool;
 /** Doctrine on an in-memory SQLite database, mapping these fixtures. */
 final class EntityManagers
 {
-    public static function sqlite(): EntityManager
+    /** @param string|null $directory the entities' directory: these fixtures by default */
+    public static function sqlite(?string $directory = null): EntityManager
     {
-        $configuration = ORMSetup::createAttributeMetadataConfig([__DIR__], true);
+        $configuration = ORMSetup::createAttributeMetadataConfig([$directory ?? __DIR__], true);
         if (\PHP_VERSION_ID >= 80400 && method_exists($configuration, 'enableNativeLazyObjects')) {
             $configuration->enableNativeLazyObjects(true);
         }

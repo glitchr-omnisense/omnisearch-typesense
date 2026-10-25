@@ -8,6 +8,7 @@ use Omnisearch\DBAL\Filter;
 use Omnisearch\DBAL\Hit;
 use Omnisearch\DBAL\Request;
 use Omnisearch\DBAL\Response;
+use Omnisearch\Exception\DriverException;
 use Omnisearch\Mapping\ClassMetadata;
 use Typesense\Bundle\Exception\TypesenseException;
 use Typesense\Bundle\ORM\Mapping\TypesenseCollection;
@@ -18,6 +19,7 @@ use Typesense\Bundle\ORM\Transformer\Abstract\TransformerInterface;
 use Typesense\Bundle\ORM\TypesenseFinder;
 use Typesense\Bundle\ORM\TypesenseManager;
 use Typesense\Exceptions\ObjectNotFound;
+use Typesense\Exceptions\TypesenseClientError;
 
 /**
  * Omnisearch's driver for Typesense, over glitchr/typesense-bundle: an
@@ -72,16 +74,20 @@ final class TypesenseDriver implements Driver
 
     public function create(ClassMetadata $metadata): void
     {
-        foreach ($this->collections($metadata) as $collection) {
-            $collection->create();
-        }
+        self::write(function () use ($metadata): void {
+            foreach ($this->collections($metadata) as $collection) {
+                $collection->create();
+            }
+        });
     }
 
     public function drop(ClassMetadata $metadata): void
     {
-        foreach ($this->collections($metadata) as $collection) {
-            $collection->delete();
-        }
+        self::write(function () use ($metadata): void {
+            foreach ($this->collections($metadata) as $collection) {
+                $collection->delete();
+            }
+        });
     }
 
     public function schema(ClassMetadata $metadata): array
@@ -115,13 +121,15 @@ final class TypesenseDriver implements Driver
 
     public function index(ClassMetadata $metadata, object ...$objects): void
     {
-        foreach ($objects as $object) {
-            foreach ($this->collections($metadata) as $collection) {
-                if ($collection->supports($object)) {
-                    $collection->documents()->upsert($collection->transformer()->convert($object), []);
+        self::write(function () use ($metadata, $objects): void {
+            foreach ($objects as $object) {
+                foreach ($this->collections($metadata) as $collection) {
+                    if ($collection->supports($object)) {
+                        $collection->documents()->upsert($collection->transformer()->convert($object), []);
+                    }
                 }
             }
-        }
+        });
         $this->clearCache($metadata);
     }
 
@@ -131,7 +139,12 @@ final class TypesenseDriver implements Driver
             foreach ($ids as $id) {
                 try {
                     $collection->documents()->delete($id);
-                } catch (TypesenseException|ObjectNotFound) {
+                } catch (ObjectNotFound) {
+                } catch (TypesenseException $e) {
+                    // The bundle's word for a document not there, as for a server not answering: only the status tells.
+                    if (404 !== (int) $e->getCode()) {
+                        throw self::failure($e);
+                    }
                 }
             }
         }
@@ -202,7 +215,14 @@ final class TypesenseDriver implements Driver
     public static function response(TypesenseResponse $response): Response
     {
         if (200 !== $response->getStatus()) {
-            return Response::failed($response->getStatus(), $response->getContent());
+            // The bundle's finder keeps Typesense's message to itself outside debug: say at least what the status means.
+            $error = trim((string) $response->getContent());
+
+            return Response::failed($response->getStatus(), '' !== $error ? $error : \sprintf('Typesense answered HTTP %d%s.', $response->getStatus(), match (true) {
+                0 === $response->getStatus() || $response->getStatus() >= 500 => ': not reached, or not ready',
+                404 === $response->getStatus() => ': no such collection',
+                default => '',
+            }));
         }
 
         $hits = [];
@@ -222,6 +242,27 @@ final class TypesenseDriver implements Driver
         }
 
         return new Response((int) $response->getFound(), (int) ($response->getPage() ?? 1), $hits, $facets);
+    }
+
+    /**
+     * A write that Typesense refuses, or that cannot reach it, is a
+     * DriverException: the family's, its code Typesense's HTTP status (503
+     * when there was none), the bundle's or the client's exception before it.
+     */
+    private static function write(\Closure $write): void
+    {
+        try {
+            $write();
+        } catch (TypesenseException|TypesenseClientError $e) {
+            throw self::failure($e);
+        }
+    }
+
+    private static function failure(\Throwable $e): DriverException
+    {
+        $status = (int) $e->getCode();
+
+        return new DriverException('Typesense: '.$e->getMessage(), $status >= 400 && $status < 600 ? $status : 503, $e);
     }
 
     private function clearCache(ClassMetadata $metadata): void

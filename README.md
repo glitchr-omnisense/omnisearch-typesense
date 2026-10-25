@@ -30,6 +30,13 @@ $registry = new Registry([new TypesenseDriverFactory(null, $entityManager)], ['d
   doctrine-bundle, glitchr/typesense-bundle and omnisearch's bundle: the index hosted by the
   bundle, created by `typesense:create`, indexed by its listener, searched and loaded back by
   omnisearch (`HostedTest`); plain PHP with no class of a framework (omnisearch's `BareTest`).
+- omnisearch's conformance suite (`Tests/TypesenseContractTest.php`): green on 2026-10-25 beside a
+  Typesense 30.0 container; without a server its offline part runs (factory, options, mapping, an
+  engine that does not answer) and the rest is skipped. Found and fixed on the way: a refused or
+  unreachable search answered an empty message (the bundle's finder keeps Typesense's outside
+  debug) - it says what the status means; a write that failed threw the bundle's
+  `TypesenseException` - it is omnisearch's `DriverException`, the status as its code, and
+  `remove()` no longer takes an unreachable server for a document not there.
 - Not verified: Typesense clusters of several nodes; `multiSearch` (not exposed by omnisearch).
 
 MIT. An unofficial client, affiliated with Typesense in no way.
