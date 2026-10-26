@@ -2,6 +2,9 @@
 
 ## Unreleased (1.x)
 
+### Changed
+- Requires `omnisense/omnisearch`, the core's new name (Omniscient is now Omnisense); the repository is `glitchr-omnisense/omnisearch-typesense`.
+
 ### Changed (behaviour)
 - A write that fails - `create()`, `drop()`, `index()`, `remove()` - throws omnisearch's
   `Omnisearch\Exception\DriverException` (Typesense's HTTP status as its code, 503 when there is

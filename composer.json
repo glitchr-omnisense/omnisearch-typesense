@@ -8,7 +8,7 @@
         "omnisearch",
         "doctrine"
     ],
-    "homepage": "https://github.com/glitchr-studio/omnisearch-typesense",
+    "homepage": "https://github.com/glitchr-omnisense/omnisearch-typesense",
     "license": "MIT",
     "authors": [
         {
@@ -19,7 +19,7 @@
     "require": {
         "php": ">=8.2",
         "glitchr/typesense-bundle": "^2.0@dev",
-        "omniscient/omnisearch": "^1.0@dev"
+        "omnisense/omnisearch": "^1.0@dev"
     },
     "require-dev": {
         "doctrine/doctrine-bundle": "^2.13|^3.0",

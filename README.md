@@ -1,6 +1,6 @@
 # omnisearch/typesense
 
-[Typesense](https://typesense.org) for [omniscient/omnisearch](https://github.com/glitchr-studio/omnisearch),
+[Typesense](https://typesense.org) for [omnisense/omnisearch](https://github.com/glitchr-omnisense/omnisearch),
 over [glitchr/typesense-bundle](https://github.com/glitchr-studio/typesense-bundle)'s
 framework-free part: the indexes declared by omnisearch's attributes become the bundle's
 collections, objects its documents, omnisearch's requests its queries, its responses omnisearch's.
