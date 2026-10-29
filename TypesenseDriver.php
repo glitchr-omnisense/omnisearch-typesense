@@ -9,6 +9,7 @@ use Omnisearch\DBAL\Hit;
 use Omnisearch\DBAL\Request;
 use Omnisearch\DBAL\Response;
 use Omnisearch\Exception\DriverException;
+use Omnisearch\Exception\InvalidConfigException;
 use Omnisearch\Mapping\ClassMetadata;
 use Psr\Http\Client\ClientExceptionInterface;
 use Typesense\Bundle\Exception\TypesenseException;
@@ -55,7 +56,11 @@ final class TypesenseDriver implements Driver
         return $this->manager;
     }
 
-    /** The bundle's collection of an index, made and registered when the bundle has none. */
+    /**
+     * The bundle's collection of an index, made and registered when the bundle has none.
+     *
+     * @throws InvalidConfigException when the bundle has none and this driver no transformer to make it
+     */
     public function collection(ClassMetadata $metadata): TypesenseCollection
     {
         $collections = $this->manager->getCollections();
@@ -63,7 +68,7 @@ final class TypesenseDriver implements Driver
             return $collections[$metadata->index];
         }
         if (null === $this->transformer) {
-            throw new \LogicException(\sprintf('The bundle has no "%s" collection and this driver no transformer to make one with.', $metadata->index));
+            throw new InvalidConfigException(\sprintf('The bundle has no "%s" collection and this driver no transformer to make one with.', $metadata->index));
         }
         $collection = new TypesenseCollection(new TypesenseMetadata($metadata->index, Mapping::toTypesense($metadata, $this->connection), $this->transformer, $this->prefix), $this->manager->getConnection($this->connection));
         $this->manager->addCollection($collection);

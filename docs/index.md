@@ -291,7 +291,8 @@ path in `bin/bare` ([harness](https://github.com/glitchr-omnisense/omnisearch/bl
   `Psr18Client` (symfony/http-client installed) throws its `Psr18NetworkException`, which the
   bundle, catching HTTPlug's exception, lets through; the driver reads it as above.
 - A missing `secret`, or no object manager for a connection of its own: `InvalidConfigException`.
-- An index the bundle does not know and no transformer to make it with: `\LogicException`.
+- An index the bundle does not know and no transformer to make it with: `InvalidConfigException`
+  (`The bundle has no "<index>" collection and this driver no transformer to make one with.`).
 
 ## Verified, and not
 
@@ -316,5 +317,6 @@ path in `bin/bare` ([harness](https://github.com/glitchr-omnisense/omnisearch/bl
 
 ## Responsibility
 
-An unofficial client, affiliated with Typesense in no way (README). The package has no
-Responsibility section of its own and links no terms of Typesense's.
+An independent, unofficial driver, affiliated with Typesense in no way. Whoever runs it complies
+with the terms of the Typesense server they use (its licence, or Typesense Cloud's terms): see the
+README's Responsibility section.

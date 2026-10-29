@@ -13,6 +13,9 @@
   `DriverException` (or `OmnisearchException`) now. (8d650d8)
 
 ### Fixed
+- An index the bundle does not know, with no transformer to make it, is omnisearch's
+  `InvalidConfigException`, where it was a plain `\LogicException` (outside the family's
+  `OmnisearchException`).
 - A Typesense server that cannot be reached no longer lets the HTTP client's exception escape:
   with symfony/http-client installed, php-http's discovery gives typesense-php Symfony's
   `Psr18Client`, whose `Psr18NetworkException` neither the bundle nor the driver caught, so
@@ -26,5 +29,6 @@
 - `remove()` no longer takes an unreachable server for a document that is not there. (8d650d8)
 
 ### Added
+- The README's Responsibility section, as every package of the family has.
 - The package runs omnisearch's conformance suite (`Tests/TypesenseContractTest.php`,
   `Omnisearch\Testing\DriverContractTests`). (8d650d8)

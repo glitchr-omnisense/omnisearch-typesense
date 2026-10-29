@@ -39,4 +39,16 @@ $registry = new Registry([new TypesenseDriverFactory(null, $entityManager)], ['d
   `remove()` no longer takes an unreachable server for a document not there.
 - Not verified: Typesense clusters of several nodes; `multiSearch` (not exposed by omnisearch).
 
-MIT. An unofficial client, affiliated with Typesense in no way.
+## Responsibility
+
+This package is an independent, unofficial driver: it is not affiliated with, endorsed by or
+sponsored by Typesense, Inc. It talks to the Typesense server its user runs or rents, through
+glitchr/typesense-bundle and typesense/typesense-php, and sends that server nothing but the
+documents and queries the application gives it. Its MIT licence covers this package's code only.
+
+Whoever installs and runs it is responsible for complying with the terms of the Typesense server
+they use (Typesense's own licence for a server they run, Typesense Cloud's terms for a rented one),
+and for what they index and search. The authors publish it free of charge, make no
+commercial use of it, and accept no liability for how it is used (see [LICENSE](LICENSE)).
+
+License: MIT.
