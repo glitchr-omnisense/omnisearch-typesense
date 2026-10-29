@@ -267,13 +267,13 @@ $ php typesense.php
 {"connection":"default","class":"App\\Entity\\Post","fields":{"title":{"type":"string","infix":true,"options":[]},"tags":{"type":"string[]","facet":true,"options":[]},"publishedAt":{"type":"datetime","property":"publishedAt","options":{"sort":true}}},"default_sorting_field":"publishedAt","token_separators":["+","-","@","."," "],"symbols_to_index":["+"]}
 {"query_by":"title","q":"fuj","infix":"always","per_page":5,"page":1,"sort_by":"publishedAt:desc","facet_by":"tags","filter_by":"tags:=`japan` && publishedAt:>1767225600","num_typos":0}
 {"name":"post","fields":[{"name":"title","type":"string","property":null,"identifier":false,"discriminator":false,"facet":false,"infix":true},{"name":"tags","type":"string[]","property":null,"identifier":false,"discriminator":false,"facet":true,"infix":false},{"name":"publishedAt","type":"int64","property":"publishedAt","identifier":false,"discriminator":false,"facet":false,"infix":false,"sort":true},{"name":"id","type":"string","property":"id","identifier":true,"discriminator":false,"facet":false,"infix":false},{"name":"primary","type":"int32","property":"id","identifier":true,"discriminator":false,"facet":false,"infix":false}],"default_sorting_field":"publishedAt","token_separators":["+","-","@","."," "],"symbols_to_index":["+"]}
-search: Symfony\Component\HttpClient\Psr18NetworkException 0
-index: Symfony\Component\HttpClient\Psr18NetworkException 0
+search: 503 Typesense not reached: Failed to connect to 127.0.0.1:9 after 0 ms: Could not connect to server for "http://127.0.0.1:9/collections/post/documents/search?query_by=title&q=fuj&infix=always&per_page=5&page=1&sort_by=publishedAt%3Adesc&facet_by=tags&filter_by=tags%3A%3D%60japan%60+%26%26+publishedAt%3A%3E1767225600&num_typos=0".
+index: Omnisearch\Exception\DriverException 503
 A Typesense connection of its own needs the option "secret" (and "url", or "host").
 ```
 
-(run on 2026-10-26, PHP 8.4.27, no network: this checkout, typesense-bundle 2.x, typesense-php
-5.2.0 and symfony/http-client 8.1 from an application's `vendor/`)
+(run on 2026-10-29, PHP 8.4.27, in omnisearch's harness: this checkout, typesense-bundle 2.x,
+typesense-php 5.2.0 and symfony/http-client 8.1, nothing listening on port 9)
 
 Against a server, `$connection->create($metadata)`, `index()` and
 `$manager->finder(Post::class)->search($query)` do the rest; omnisearch's harness runs that whole
@@ -284,12 +284,14 @@ path in `bin/bare` ([harness](https://github.com/glitchr-omnisense/omnisearch/bl
 - A write Typesense refuses, or that cannot reach it: `Omnisearch\Exception\DriverException`, its
   message `Typesense: <the client's message>`, its code Typesense's HTTP status (503 when there was
   none), the bundle's or the client's exception as previous.
-- A search: no exception by contract; a failed `Response` with the status and a message.
+- A search: no exception by contract; a failed `Response` with the status and a message (503 and
+  `Typesense not reached: <the client's message>` when the server cannot be reached).
+- Whichever PSR-18 client php-http's discovery gives typesense-php, a server that cannot be reached
+  is caught by the PSR-18 interfaces (`Psr\Http\Client\ClientExceptionInterface`): Symfony's
+  `Psr18Client` (symfony/http-client installed) throws its `Psr18NetworkException`, which the
+  bundle, catching HTTPlug's exception, lets through; the driver reads it as above.
 - A missing `secret`, or no object manager for a connection of its own: `InvalidConfigException`.
 - An index the bundle does not know and no transformer to make it with: `\LogicException`.
-
-> [!WARNING]
-> Known defect: with symfony/http-client installed, php-http discovery gives the Typesense client Symfony's `Psr18Client`, whose `Psr18NetworkException` neither the bundle nor the driver catches: an unreachable server makes `search()` and `index()` throw it (code 0, seen in the example above), where a search should answer a failed `Response` and a write throw a `DriverException`. In omnisearch's harness, which installs no symfony/http-client, the contract holds.
 
 ## Verified, and not
 
@@ -299,13 +301,16 @@ path in `bin/bare` ([harness](https://github.com/glitchr-omnisense/omnisearch/bl
   field, a padded facet_by, a refusal); a Symfony application with framework-bundle,
   doctrine-bundle, glitchr/typesense-bundle and omnisearch's bundle: the index hosted by the
   bundle, created by `typesense:create`, indexed by its listener, searched and loaded back by
-  omnisearch (`HostedTest`); plain PHP with no class of a framework (omnisearch's `BareTest`).
-- omnisearch's conformance suite (`Tests/TypesenseContractTest.php`): green on 2026-10-25 beside a
-  Typesense 30.0 container; without a server its offline part runs (factory, options, mapping, an
+  omnisearch (`HostedTest`); plain PHP with no class of a framework (omnisearch's `BareTest`); a
+  server that cannot be reached through Symfony's `Psr18Client` and through a bare PSR-18 client: a
+  failed Response for a search, a `DriverException` for `index()`, `remove()`, `create()` and
+  `drop()` (`NetworkFailureTest`).
+- omnisearch's conformance suite (`Tests/TypesenseContractTest.php`): green on 2026-10-29 beside a
+  Typesense 30.0 container, symfony/http-client installed; without a server its offline part runs (factory, options, mapping, an
   engine that does not answer) and the rest is skipped.
 - On an application: lesringostars' four collections declared by attributes, their schemas those
   its server held, byte for byte (omnisearch's README).
-- Run for this page: the example above, offline.
+- Run for this page: the example above, with no server listening.
 - Not verified: Typesense clusters of several nodes (the factory makes one node); Typesense Cloud;
   multi-search (not exposed by omnisearch).
 

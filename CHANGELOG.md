@@ -13,6 +13,14 @@
   `DriverException` (or `OmnisearchException`) now. (8d650d8)
 
 ### Fixed
+- A Typesense server that cannot be reached no longer lets the HTTP client's exception escape:
+  with symfony/http-client installed, php-http's discovery gives typesense-php Symfony's
+  `Psr18Client`, whose `Psr18NetworkException` neither the bundle nor the driver caught, so
+  `search()` and every write threw it (code 0). The driver catches the PSR-18 interfaces
+  (`Psr\Http\Client\ClientExceptionInterface`): a search answers a failed Response (503,
+  `Typesense not reached: ...`), `index()`, `remove()`, `create()` and `drop()` throw a
+  `DriverException` (503). The package requires `psr/http-client` (already there through
+  typesense-php), and its tests symfony/http-client.
 - A refused or unreachable search answers a Response whose message says what the status means,
   not an empty message. (8d650d8)
 - `remove()` no longer takes an unreachable server for a document that is not there. (8d650d8)

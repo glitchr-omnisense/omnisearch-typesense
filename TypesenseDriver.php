@@ -10,6 +10,7 @@ use Omnisearch\DBAL\Request;
 use Omnisearch\DBAL\Response;
 use Omnisearch\Exception\DriverException;
 use Omnisearch\Mapping\ClassMetadata;
+use Psr\Http\Client\ClientExceptionInterface;
 use Typesense\Bundle\Exception\TypesenseException;
 use Typesense\Bundle\ORM\Mapping\TypesenseCollection;
 use Typesense\Bundle\ORM\Mapping\TypesenseMetadata;
@@ -31,6 +32,13 @@ use Typesense\Exceptions\TypesenseClientError;
  * In a Symfony application with the bundle, the collections are the
  * bundle's own (TypesenseHost declared them); elsewhere they are made here
  * on first use from the metadata.
+ *
+ * A server that cannot be reached is caught by the PSR-18 interfaces
+ * (Psr\Http\Client\ClientExceptionInterface), whatever client php-http's
+ * discovery gave typesense-php: Symfony's Psr18Client throws its
+ * Psr18NetworkException, which the bundle (catching HTTPlug's exception)
+ * lets through. A search then answers a failed Response (503), a write
+ * throws a DriverException (503).
  */
 final class TypesenseDriver implements Driver
 {
@@ -140,6 +148,8 @@ final class TypesenseDriver implements Driver
                 try {
                     $collection->documents()->delete($id);
                 } catch (ObjectNotFound) {
+                } catch (ClientExceptionInterface $e) {
+                    throw self::failure($e);
                 } catch (TypesenseException $e) {
                     // The bundle's word for a document not there, as for a server not answering: only the status tells.
                     if (404 !== (int) $e->getCode()) {
@@ -155,8 +165,13 @@ final class TypesenseDriver implements Driver
     {
         $this->collection($metadata);
         $finder = $this->manager->getFinder($metadata->index);
+        try {
+            $response = $finder->raw(self::query($metadata, $request), $request->cacheable);
+        } catch (ClientExceptionInterface $e) {
+            return Response::failed(503, 'Typesense not reached: '.$e->getMessage());
+        }
 
-        return self::response($finder->raw(self::query($metadata, $request), $request->cacheable));
+        return self::response($response);
     }
 
     /** A Request as the bundle's Query. */
@@ -247,13 +262,14 @@ final class TypesenseDriver implements Driver
     /**
      * A write that Typesense refuses, or that cannot reach it, is a
      * DriverException: the family's, its code Typesense's HTTP status (503
-     * when there was none), the bundle's or the client's exception before it.
+     * when there was none), the bundle's or the client's exception before it
+     * (a PSR-18 client's own included).
      */
     private static function write(\Closure $write): void
     {
         try {
             $write();
-        } catch (TypesenseException|TypesenseClientError $e) {
+        } catch (TypesenseException|TypesenseClientError|ClientExceptionInterface $e) {
             throw self::failure($e);
         }
     }
