@@ -1,0 +1,38 @@
+{
+    "$schema": "https://github.com/glitchr-omnisense/contracts/blob/1.x/resources/usage-policy.schema.json",
+    "provider": "typesense",
+    "rateLimits": [],
+    "concurrency": null,
+    "rights": {
+        "commercial": "allowed",
+        "openSourceRequired": false,
+        "caching": {
+            "permission": "allowed",
+            "maxTtl": null
+        },
+        "storage": "allowed",
+        "redistribution": "allowed",
+        "attribution": {
+            "required": false,
+            "text": null,
+            "url": null,
+            "where": []
+        },
+        "licence": "GPL-3.0"
+    },
+    "requirements": {
+        "key": true,
+        "userAgent": {
+            "required": false,
+            "pattern": null
+        }
+    },
+    "provenance": {
+        "terms": "https://github.com/typesense/typesense/blob/v30/LICENSE.txt",
+        "policy": "https://cloud.typesense.org/legal/terms",
+        "verifiedAt": "2026-11-10",
+        "declaredBy": "maintainer",
+        "contact": null,
+        "notes": "The engine is the site's: a Typesense server it runs (self-hosted) or a Typesense Cloud cluster it subscribed to; the documents indexed and answered are the site's own, their rights the site's. Self-hosted: no third party, no terms but the server's licence (GPL-3.0, the server's, not this driver's MIT; the site runs it, it does not link to it), no limit but the machine's. Typesense Cloud: its Terms of Service (read 2026-11-10, no date on the page) publish no request rate limit - usage is billed on consumption, the cluster's size bounds it; the customer keeps all right, title and interest in its data (2.4(a)), and uses the service solely for its business purposes of searching its indexed data, without reselling it (2.1, 2.3). Hence no limit ([]) here; a site that wants one adds it (policies are only tightened). The key is the server's API key (the connection's secret). Writes: omnisearch upserts each document by its identifier and deletes by identifier (both idempotent); typesense-php retries a request after a 5xx or a network failure (num_retries, 3 by default), which replays nothing that was not idempotent but a collection's creation or drop (answered 409 or 404 on the replay, never doubled)."
+    }
+}

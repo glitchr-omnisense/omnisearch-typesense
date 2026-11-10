@@ -51,4 +51,17 @@ they use (Typesense's own licence for a server they run, Typesense Cloud's terms
 and for what they index and search. The authors publish it free of charge, make no
 commercial use of it, and accept no liability for how it is used (see [LICENSE](LICENSE)).
 
+## Usage policy
+
+`policy.json` (omnisense/contracts' schema, named in `composer.json` as `extra.omnisense.policy`)
+says it as data: no limit (`[]`) - a server the site runs has none but its machine's, and Typesense
+Cloud's terms publish none (usage is billed, the cluster's size bounds it); the documents are the
+site's own; the key is the server's API key. Read on 2026-11-10. A site adds a limit of its own
+through omnisense/contracts' `tighten()`; nothing in this driver counts calls.
+
+Writes are never doubled by a replay: a document is upserted by its identifier and removed by its
+identifier (both idempotent); typesense-php retries a request after a 5xx or a network failure,
+and the only writes that are not idempotent - a collection's creation or drop - answer 409 or 404
+on a replay rather than being done twice. omnisearch adds no retry of its own.
+
 License: MIT.

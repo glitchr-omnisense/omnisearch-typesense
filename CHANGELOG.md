@@ -2,6 +2,13 @@
 
 ## Unreleased (1.x)
 
+### Added
+- Its usage policy, on omnisense/contracts: `policy.json` (named in `composer.json`,
+  `extra.omnisense.policy`): no limit - a self-hosted server has none, Typesense Cloud's terms
+  publish none -, the documents the site's own, the server's API key required, the server's
+  licence (GPL-3.0); verified 2026-11-10. The README's Usage policy section says which writes a
+  replay could repeat (none doubled). `Tests/PolicyTest.php`.
+
 ### Changed
 - Requires `omnisense/omnisearch`, the core's new name (Omniscient is now Omnisense); the repository is `glitchr-omnisense/omnisearch-typesense`.
 
