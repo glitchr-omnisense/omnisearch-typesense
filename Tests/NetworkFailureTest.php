@@ -52,6 +52,7 @@ final class NetworkFailureTest extends TestCase
         }];
     }
 
+    /** @param \Closure(): ClientInterface $client */
     #[DataProvider('clients')]
     public function testASearchAnswersAFailedResponse(\Closure $client): void
     {
@@ -63,6 +64,7 @@ final class NetworkFailureTest extends TestCase
         self::assertStringContainsString('Typesense', (string) $response->error);
     }
 
+    /** @param \Closure(): ClientInterface $client */
     #[DataProvider('clients')]
     public function testAWriteThrowsTheFamilysException(\Closure $client): void
     {
@@ -88,6 +90,9 @@ final class NetworkFailureTest extends TestCase
             'options' => ['client' => $client, 'num_retries' => 0],
         ]);
 
-        return [$driver, AttributeLoader::load(ContractNote::class)];
+        $metadata = AttributeLoader::load(ContractNote::class);
+        self::assertNotNull($metadata);
+
+        return [$driver, $metadata];
     }
 }
