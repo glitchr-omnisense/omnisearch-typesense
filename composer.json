@@ -18,8 +18,8 @@
     ],
     "require": {
         "php": ">=8.2",
-        "glitchr/typesense-bundle": "^2.0@dev",
-        "omnisense/omnisearch": "^1.0@dev",
+        "glitchr/typesense-bundle": "^2.0",
+        "omnisense/omnisearch": "^1.0",
         "psr/http-client": "^1.0"
     },
     "require-dev": {
@@ -45,6 +45,9 @@
         }
     },
     "extra": {
+        "branch-alias": {
+            "dev-1.x": "1.x-dev"
+        },
         "omnisense": {
             "policy": "policy.json"
         }

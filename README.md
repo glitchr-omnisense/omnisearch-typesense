@@ -6,6 +6,46 @@ framework-free part: the indexes declared by omnisearch's attributes become the 
 collections, objects its documents, omnisearch's requests its queries, its responses omnisearch's.
 Nothing the bundle does is written again here.
 
+## Install and a first call
+
+```sh
+composer require omnisearch/typesense
+```
+
+No server for this first call: an index declared by omnisearch's attributes, then what the driver
+would send for it - the collection's fields as the bundle maps them, and a query as Typesense's
+search parameters. A real call needs a Typesense server and its API key: one's own (the Docker image
+`typesense/typesense`, started with `--api-key`; no account) or a Typesense Cloud cluster (an
+account). The objects indexed are Doctrine entities: the driver of its own needs Doctrine's object
+manager ([docs/index.md](docs/index.md#example)).
+
+```php
+<?php
+
+require __DIR__.'/vendor/autoload.php';
+
+use Omnisearch\Mapping\{AttributeLoader, Field, Index, Type};
+use Omnisearch\ORM\Query;
+use Omnisearch\Typesense\{Mapping, TypesenseDriver};
+
+#[Index('post')]
+#[Field('title', type: Type::STRING, infix: true)]
+#[Field('tags', type: Type::STRINGS, facet: true)]
+final class Post
+{
+    public function __construct(public int $id = 0, public string $title = '', public array $tags = [])
+    {
+    }
+}
+
+$metadata = AttributeLoader::load(Post::class);
+echo json_encode(array_keys(Mapping::toTypesense($metadata)['fields'])), "\n";   // ["title","tags"]
+$query = (new Query('fuj'))->in('title')->where('tags', 'japan')->facet('tags')->perPage(5);
+echo json_encode(TypesenseDriver::query($metadata, $query->request())->getHeaders(), JSON_UNESCAPED_SLASHES), "\n";   // {"query_by":"title","q":"fuj",...,"filter_by":"tags:=`japan`"}
+```
+
+Against a server, with Doctrine's entity manager:
+
 ```php
 use Omnisearch\Typesense\TypesenseDriverFactory;
 
